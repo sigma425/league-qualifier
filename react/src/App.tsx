@@ -50,20 +50,44 @@ const App: React.FC = () => {
 
   const handleRemove = (idx: number) => {
     setPlayers((ps) => ps.filter((_, i) => i !== idx));
-    // 結果マップから該当プレイヤーを削除する処理も追加すると良い
+
+    setResults((prev) => {
+      const newResults = { ...prev };
+      const playerName = players[idx];
+      delete newResults[playerName];
+      
+      Object.keys(newResults).forEach(player => {
+        if (newResults[player][playerName]) {
+          delete newResults[player][playerName];
+        }
+      });
+      
+      return newResults;
+    });
   };
 
   const handleResultChange = (playerA: string, playerB: string, result: string) => {
+    if (result.trim() === '') {
+      // 対戦結果を削除
+      setResults((prev) => {
+        const newResults = { ...prev };
+        delete newResults[playerA][playerB];
+        delete newResults[playerB][playerA];
+        return newResults;
+      });
+      return;
+    }
+
     // 文字列をMatchResult型に変換
     const parts = result.split('-').map((s) => s.trim());
     const matchResult: [number, number] = [
       parseInt(parts[0], 10) || 0,
       parseInt(parts[1], 10) || 0
     ];
-    
+
     // 逆の結果（B vs A）も作成
     const reverseResult: [number, number] = [matchResult[1], matchResult[0]];
-    
+
     setResults((prev) => ({
       ...prev,
       [playerA]: {
